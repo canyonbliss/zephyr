@@ -95,14 +95,19 @@ struct net_socket_service_desc {
 #define NET_SOCKET_SERVICE_OWNER
 #endif
 
+#define __z_net_socket_svc_event(i, _cb) \
+	{								\
+		.callback = _cb,					\
+		.event = { .fd = -1, .events = 0, .revents = 0 },	\
+		.user_data = NULL,					\
+		.svc = NULL,						\
+	}
+
 #define __z_net_socket_service_define(_name, _cb, _count, ...) \
 	static int __z_net_socket_svc_get_idx(_name);			\
 	static struct net_socket_service_event				\
 			__z_net_socket_svc_get_name(_name)[_count] = {	\
-		[0 ... ((_count) - 1)] = {				\
-			.event.fd = -1, /* Invalid socket */		\
-			.callback = _cb,				\
-		}							\
+		LISTIFY(_count, __z_net_socket_svc_event, (,), _cb)	\
 	};								\
 	COND_CODE_0(NUM_VA_ARGS_LESS_1(__VA_ARGS__), (), __VA_ARGS__)	\
 	const STRUCT_SECTION_ITERABLE(net_socket_service_desc, _name) = { \
